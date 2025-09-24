@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PetshopService implements GerenciadorPetshop {
 
@@ -12,9 +13,14 @@ public class PetshopService implements GerenciadorPetshop {
     }
 
     @Override
-    public void cadastrarAnimal(Animal animal) {
-        animais.add(animal);
-        System.out.println("Animal " + animal.getNome() + " cadastrado com sucesso!");
+    public void cadastrarAnimal(Animal novoAnimal) throws AnimalJaCadastradoException {
+        // Verifica se a lista já contém um animal que seja "igual" ao novo.
+        if (animais.contains(novoAnimal)) {
+            throw new AnimalJaCadastradoException("Erro: Animal com o mesmo nome e dono já cadastrado.");
+        }
+        
+        animais.add(novoAnimal);
+        System.out.println("Animal " + novoAnimal.getNome() + " cadastrado com sucesso!");
     }
 
     @Override
@@ -61,5 +67,30 @@ public class PetshopService implements GerenciadorPetshop {
         } else {
             System.out.println("Arquivo de dados não encontrado. Iniciando com lista vazia.");
         }
+    }
+
+    @Override
+    public void registrarInternamento(String nomeAnimal, Internamento internamento) throws AnimalNaoEncontradoException {
+        Animal animal = pesquisarAnimal(nomeAnimal);
+        animal.adicionarInternamento(internamento);
+        System.out.println("Internamento registrado para o animal " + nomeAnimal);
+    }
+
+    @Override
+    public void registrarPlanoDeSaude(String nomeAnimal, PlanoDeSaude plano) throws AnimalNaoEncontradoException {
+        Animal animal = pesquisarAnimal(nomeAnimal);
+        animal.setPlanoSaude(plano);
+        System.out.println("Plano de saúde registrado para o animal " + nomeAnimal);
+    }
+
+    @Override
+    public String getHistoricoInternamentos(String nomeAnimal) throws AnimalNaoEncontradoException {
+        Animal animal = pesquisarAnimal(nomeAnimal);
+        if (animal.getHistoricoInternamentos().isEmpty()) {
+            return "Nenhum histórico de internamento para " + nomeAnimal;
+        }
+        return animal.getHistoricoInternamentos().stream()
+                .map(Object::toString)
+                .collect(Collectors.joining("\n"));
     }
 }
